@@ -982,42 +982,42 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
 }
 
 // miner's coin base reward
-int64_t GetProofOfWorkReward(int64_t nFees)
+int64_t GetProofOfWorkReward(int64_t nFees, int nHeight)
 {
 
 //anti-instamine
     int64_t nSubsidy = 0 * COIN;
 
-if(pindexBest->nHeight < 120)
+if(nHeight < 120)
     {
         nSubsidy = 0 * COIN;
     }
-    else if(pindexBest->nHeight < 950)
+    else if(nHeight < 950)
     {
         nSubsidy = 750 * COIN;
     }
-    else if(pindexBest->nHeight < 1400)
+    else if(nHeight < 1400)
     {
         nSubsidy = 550 * COIN;
     }
-    else if(pindexBest->nHeight < 1900)
+    else if(nHeight < 1900)
     {
         nSubsidy = 425 * COIN;
     }
-    else if(pindexBest->nHeight < 2400)
+    else if(nHeight < 2400)
     {
         nSubsidy =  325 * COIN;
     }
-    else if(pindexBest->nHeight < 2850)
+    else if(nHeight < 2850)
     {
         nSubsidy = 251 * COIN;
     }
 
-else if(pindexBest->nHeight < 3500)
+else if(nHeight < 3500)
     {
         nSubsidy = 190 * COIN;
     }
-else if(pindexBest->nHeight < 4000)
+else if(nHeight < 4000)
     {
         nSubsidy = 105 * COIN;
     }
@@ -1029,31 +1029,31 @@ else if(pindexBest->nHeight < 4000)
 static const int g_RewardHalvingPeriod = 1000000;
 
 // miner's coin stake reward based on coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees)
+int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees, int nHeight)
 {
     int64_t nSubsidy = 40 * COIN;
 
-if(pindexBest->nHeight < 5000)
+if(nHeight < 5000)
     {
         nSubsidy = 30 * COIN;
     }
-    else if(pindexBest->nHeight < 7000)
+    else if(nHeight < 7000)
     {
         nSubsidy = 45 * COIN;
     }
-    else if(pindexBest->nHeight < 7250)
+    else if(nHeight < 7250)
     {
         nSubsidy = 190 * COIN;
     }
-    else if(pindexBest->nHeight < 8500)
+    else if(nHeight < 8500)
     {
         nSubsidy = 80 * COIN;
     }
-    else if(pindexBest->nHeight < 10000)
+    else if(nHeight < 10000)
     {
         nSubsidy = 15 * COIN;
     }
-    else if(pindexBest->nHeight < 13500)
+    else if(nHeight < 13500)
     {
         nSubsidy = 30 * COIN;
     }
@@ -1063,9 +1063,9 @@ else
     nSubsidy = 40 * COIN;
 
     // Subsidy is cut in half every g_RewardHalvingPeriod blocks which will occur approximately every 2 years.
-    int halvings = pindexBest->nHeight / g_RewardHalvingPeriod;
+    int halvings = nHeight / g_RewardHalvingPeriod;
     nSubsidy = (halvings >= 64)? 0 : (nSubsidy >> halvings);
-    nSubsidy -= nSubsidy*(pindexBest->nHeight % g_RewardHalvingPeriod)/(2*g_RewardHalvingPeriod);
+    nSubsidy -= nSubsidy*(nHeight % g_RewardHalvingPeriod)/(2*g_RewardHalvingPeriod);
     }
 
     return nSubsidy + nFees;
@@ -1639,9 +1639,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
     if (IsProofOfWork())
     {
-        int64_t nReward = GetProofOfWorkReward(nFees);
-        // Check coinbase reward
-        if (vtx[0].GetValueOut() > nReward)
+        int64_t nReward = GetProofOfWorkReward(nFees, pindex->nHeight);
+        // Check coinbase reward after hardcoded checkpoint
+        if (pindex->nHeight > 17901 && vtx[0].GetValueOut() > nReward)
             return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%"PRId64" vs calculated=%"PRId64")",
                    vtx[0].GetValueOut(),
                    nReward));
@@ -1653,9 +1653,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         if (!vtx[1].GetCoinAge(txdb, nCoinAge))
             return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString().substr(0,10).c_str());
 
-        int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nFees);
+        int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nFees, pindex->nHeight);
 
-        if (nStakeReward > nCalculatedStakeReward)
+        if (pindex->nHeight > 17901 && nStakeReward > nCalculatedStakeReward)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%"PRId64" vs calculated=%"PRId64")", nStakeReward, nCalculatedStakeReward));
     }
 
