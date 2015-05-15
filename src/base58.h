@@ -409,6 +409,9 @@ public:
             vchData.push_back(1);
     }
 
+    
+
+
     CSecret GetSecret(bool &fCompressedOut)
     {
         CSecret vchSecret;

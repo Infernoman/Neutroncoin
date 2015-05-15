@@ -32,6 +32,8 @@ public:
         DetachDatabases,   // bool
         Language,          // QString
         CoinControlFeatures, // bool
+        DarksendRounds,    // int
+        anonymizeNeutronAmount, //int
         OptionIDRowCount,
     };
 
@@ -49,6 +51,7 @@ public:
     int getDisplayUnit();
     bool getDisplayAddresses();
     bool getCoinControlFeatures();
+
     QString getLanguage() { return language; }
 
 private:
@@ -64,6 +67,8 @@ signals:
     void transactionFeeChanged(qint64);
     void reserveBalanceChanged(qint64);
     void coinControlFeaturesChanged(bool);
+    void darksendRoundsChanged(int);
+    void anonymizeNeutronAmountChanged(int);
 };
 
 #endif // OPTIONSMODEL_H

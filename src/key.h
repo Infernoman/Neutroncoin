@@ -62,11 +62,11 @@ public:
 
 /** An encapsulated public key. */
 class CPubKey {
-private:
-    std::vector<unsigned char> vchPubKey;
+private:  
     friend class CKey;
 
 public:
+    std::vector<unsigned char> vchPubKey;
     CPubKey() { }
     CPubKey(const std::vector<unsigned char> &vchPubKeyIn) : vchPubKey(vchPubKeyIn) { }
     friend bool operator==(const CPubKey &a, const CPubKey &b) { return a.vchPubKey == b.vchPubKey; }
@@ -76,6 +76,8 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(vchPubKey);
     )
+
+    
 
     CKeyID GetID() const {
         return CKeyID(Hash160(vchPubKey));
@@ -96,6 +98,8 @@ public:
     std::vector<unsigned char> Raw() const {
         return vchPubKey;
     }
+
+    
 };
 
 

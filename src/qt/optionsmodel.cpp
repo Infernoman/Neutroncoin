@@ -48,6 +48,15 @@ void OptionsModel::Init()
     nReserveBalance = settings.value("nReserveBalance").toLongLong();
     language = settings.value("language", "").toString();
 
+    if (!settings.contains("nDarksendRounds"))
+        settings.setValue("nDarksendRounds", 2);
+
+    if (!settings.contains("nAnonymizeNeutronAmount"))
+        settings.setValue("nAnonymizeNeutronAmount", 1000);
+
+    nDarksendRounds = settings.value("nDarksendRounds").toLongLong();
+    nAnonymizeNeutronAmount = settings.value("nAnonymizeNeutronAmount").toLongLong();
+
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:
     if (settings.contains("fUseUPnP"))
@@ -60,7 +69,11 @@ void OptionsModel::Init()
         SoftSetBoolArg("-detachdb", settings.value("detachDB").toBool());
     if (!language.isEmpty())
         SoftSetArg("-lang", language.toStdString());
-}
+    if (settings.contains("nDarksendRounds"))
+        SoftSetArg("-darksendrounds", settings.value("nDarksendRounds").toString().toStdString());
+    if (settings.contains("nAnonymizeNeutronAmount"))
+        SoftSetArg("-anonymizeneutronamount", settings.value("nAnonymizeNeutronAmount").toString().toStdString());
+ }
 
 int OptionsModel::rowCount(const QModelIndex & parent) const
 {
@@ -213,6 +226,16 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
             emit coinControlFeaturesChanged(fCoinControlFeatures);
             }
+            break;
+        case DarksendRounds:
+            nDarksendRounds = value.toInt();
+            settings.setValue("nDarksendRounds", nDarksendRounds);
+            emit darksendRoundsChanged(nDarksendRounds);
+            break;
+        case anonymizeNeutronAmount:
+            nAnonymizeNeutronAmount = value.toInt();
+            settings.setValue("nAnonymizeNeutronAmount", nAnonymizeNeutronAmount);
+            emit anonymizeNeutronAmountChanged(nAnonymizeNeutronAmount);
             break;
         default:
             break;

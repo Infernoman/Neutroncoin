@@ -26,6 +26,7 @@
 #include "guiutil.h"
 #include "rpcconsole.h"
 #include "wallet.h"
+#include "masternodemanager.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -117,6 +118,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     sendCoinsPage = new SendCoinsDialog(this);
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
+    masternodeManagerPage = new MasternodeManager(this);
 
     centralWidget = new QStackedWidget(this);
     centralWidget->addWidget(overviewPage);
@@ -124,6 +126,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(addressBookPage);
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
+    centralWidget->addWidget(masternodeManagerPage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -241,6 +244,11 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    masternodeManagerAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Nucleus"), this);
+    masternodeManagerAction->setToolTip(tr("Show Nucleus Nodes status and configure your nodes."));
+    masternodeManagerAction->setCheckable(true);
+    tabGroup->addAction(masternodeManagerAction);
+
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -251,6 +259,8 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(gotoMasternodeManagerPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -342,7 +352,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
-
+    toolbar->addAction(masternodeManagerAction);
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
     toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toolbar2->addAction(exportAction);
@@ -694,6 +704,15 @@ void BitcoinGUI::incomingTransaction(const QModelIndex & parent, int start, int 
                               .arg(type)
                               .arg(address), icon);
     }
+}
+
+void BitcoinGUI::gotoMasternodeManagerPage()
+{
+    masternodeManagerAction->setChecked(true);
+    centralWidget->setCurrentWidget(masternodeManagerPage);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
 void BitcoinGUI::gotoOverviewPage()

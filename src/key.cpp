@@ -460,3 +460,5 @@ bool CKey::IsValid()
     key2.SetSecret(secret, fCompr);
     return GetPubKey() == key2.GetPubKey();
 }
+
+

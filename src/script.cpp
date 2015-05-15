@@ -18,6 +18,8 @@ using namespace boost;
 #include "sync.h"
 #include "util.h"
 
+
+
 bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
 static const valtype vchFalse(0);
@@ -1934,6 +1936,8 @@ unsigned int CScript::GetSigOpCount(bool fAccurate) const
     return n;
 }
 
+
+
 unsigned int CScript::GetSigOpCount(const CScript& scriptSig) const
 {
     if (!IsPayToScriptHash())
@@ -2018,6 +2022,39 @@ public:
         return true;
     }
 };
+
+CScript GetScriptForDestination(const CTxDestination& dest)
+{
+    CScript script;
+
+    boost::apply_visitor(CScriptVisitor(&script), dest);
+    return script;
+}
+
+bool CScript::IsNormalPaymentScript() const
+{
+    if(this->size() != 25) return false;
+
+    std::string str;
+    opcodetype opcode;
+    const_iterator pc = begin();
+    int i = 0;
+    while (pc < end())
+    {
+        GetOp(pc, opcode);
+
+        if(     i == 0 && opcode != OP_DUP) return false;
+        else if(i == 1 && opcode != OP_HASH160) return false;
+        else if(i == 3 && opcode != OP_EQUALVERIFY) return false;
+        else if(i == 4 && opcode != OP_CHECKSIG) return false;
+        else if(i == 5) return false;
+
+        i++;
+    }
+
+    return true;
+}
+
 
 void CScript::SetDestination(const CTxDestination& dest)
 {

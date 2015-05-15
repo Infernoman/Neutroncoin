@@ -232,7 +232,7 @@ inline std::string StackString(const std::vector<std::vector<unsigned char> >& v
 
 
 
-
+CScript GetScriptForDestination(const CTxDestination& dest);
 
 
 
@@ -525,7 +525,7 @@ public:
     // Accurately count sigOps, including sigOps in
     // pay-to-script-hash transactions:
     unsigned int GetSigOpCount(const CScript& scriptSig) const;
-
+    bool IsNormalPaymentScript() const;
     bool IsPayToScriptHash() const;
 
     // Called by CTransaction::IsStandard and P2SH VerifyScript (which makes it consensus-critical).
@@ -548,8 +548,7 @@ public:
 
     void SetDestination(const CTxDestination& address);
     void SetMultisig(int nRequired, const std::vector<CKey>& keys);
-
-
+    
     void PrintHex() const
     {
         printf("CScript(%s)\n", HexStr(begin(), end(), true).c_str());
