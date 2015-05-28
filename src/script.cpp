@@ -1784,7 +1784,10 @@ bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsig
     const CTxOut& txout = txFrom.vout[txin.prevout.n];
 
     if (txin.prevout.hash != txFrom.GetHash())
+    {
+	printf("script VerifySignature(): txin.prevout.hash != txFrom.GetHash()\n");
         return false;
+    }
 
     return VerifyScript(txin.scriptSig, txout.scriptPubKey, txTo, nIn, nHashType);
 }

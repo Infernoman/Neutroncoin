@@ -2016,7 +2016,7 @@ bool CDarkSendSigner::SignMessage(std::string strMessage, std::string& errorMess
     ss << strMessageMagic;
     ss << strMessage;
 
-    if (!key.SignCompact(ss.GetHash(), vchSig)) {
+    if (!key.Sign(ss.GetHash(), vchSig)) {
         errorMessage = _("Signing failed.");
         return false;
     }
@@ -2030,7 +2030,7 @@ bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSi
     ss << strMessageMagic;
     ss << strMessage;
 
-    CPubKey pubkey2;
+    /*CPubKey pubkey2;
     CKey key;
     //if (!pubkey2.RecoverCompact(ss.GetHash(), vchSig)) {
     if(!key.SetCompactSignature(ss.GetHash(), vchSig)) {
@@ -2042,7 +2042,12 @@ bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSi
     if (fDebug && pubkey2.GetID() != pubkey.GetID())
         printf("CDarkSendSigner::VerifyMessage -- keys don't match: %s %s", pubkey2.GetID().ToString().c_str(), pubkey.GetID().ToString().c_str());
 
-    return (pubkey2.GetID() == pubkey.GetID());
+  
+
+    return (pubkey2.GetID() == pubkey.GetID());*/
+    CKey key;
+    key.SetPubKey(pubkey);
+    return key.Verify(ss.GetHash(), vchSig);
 }
 
 bool CDarksendQueue::Sign()

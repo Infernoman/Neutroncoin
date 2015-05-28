@@ -43,7 +43,7 @@ libzerocoin::Params* ZCParams;
 
 CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // Starting Difficulty: results with 0,000244140625 proof-of-work difficulty
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
-CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
+CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
 
 static const int64_t nTargetTimespan = 20 * 60;  // Neutron - every 20mins
 unsigned int nTargetSpacing = 1 * 79; // Neutron - 79 secs
@@ -667,10 +667,77 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!tx.ConnectInputs(txdb, mapInputs, mapUnused, CDiskTxPos(1,1,1), pindexBest, false, false))
+        CDiskTxPos posThisTx(1,1,1);
+        CBlockIndex* pindexBlock = pindexBest;
+        if (!tx.IsCoinBase())
+    {
+        int64_t nValueIn = 0;
+        int64_t nFees = 0;
+        for (unsigned int i = 0; i < tx.vin.size(); i++)
         {
-            return error("AcceptableInputs : ConnectInputs failed %s", hash.ToString().c_str());
+            COutPoint prevout = tx.vin[i].prevout;
+            assert(mapInputs.count(prevout.hash) > 0);
+            CTxIndex& txindex = mapInputs[prevout.hash].first;
+            CTransaction& txPrev = mapInputs[prevout.hash].second;
+
+            if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
+                return error("AcceptableInputs() : %s prevout.n out of range %d %"PRIszu" %"PRIszu" prev tx %s\n%s", tx.GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str());
+
+            // If prev is coinbase or coinstake, check that it's matured
+            if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
+                for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < nCoinbaseMaturity; pindex = pindex->pprev)
+                    if (pindex->nBlockPos == txindex.pos.nBlockPos && pindex->nFile == txindex.pos.nFile)
+                        return error("AcceptableInputs() : tried to spend %s at depth %d", txPrev.IsCoinBase() ? "coinbase" : "coinstake", pindexBlock->nHeight - pindex->nHeight);
+
+            // ppcoin: check transaction timestamp
+            if (txPrev.nTime > tx.nTime)
+                return error("AcceptableInputs() : transaction timestamp earlier than input transaction");
+
+            // Check for negative or overflow input values
+            nValueIn += txPrev.vout[prevout.n].nValue;
+            if (!MoneyRange(txPrev.vout[prevout.n].nValue) || !MoneyRange(nValueIn))
+                return error("AcceptableInputs() : txin values out of range");
+
         }
+        // The first loop above does all the inexpensive checks.
+        // Only if ALL inputs pass do we perform expensive ECDSA signature checks.
+        // Helps prevent CPU exhaustion attacks.
+        for (unsigned int i = 0; i < tx.vin.size(); i++)
+        {
+            COutPoint prevout = tx.vin[i].prevout;
+            assert(mapInputs.count(prevout.hash) > 0);
+            CTxIndex& txindex = mapInputs[prevout.hash].first;
+            CTransaction& txPrev = mapInputs[prevout.hash].second;
+
+            // Check for conflicts (double-spend)
+            // This doesn't trigger the DoS code on purpose; if it did, it would make it easier
+            // for an attacker to attempt to split the network.
+            if (!txindex.vSpent[prevout.n].IsNull())
+                return error("AcceptableInputs() : %s prev tx already used at %s", tx.GetHash().ToString().substr(0,10).c_str(), txindex.vSpent[prevout.n].ToString().c_str());
+
+            // Mark outpoints as spent
+            txindex.vSpent[prevout.n] = posThisTx;
+        }
+
+        if (!tx.IsCoinStake())
+        {
+            if (nValueIn < tx.GetValueOut())
+                return error("AcceptableInputs() : %s value in < value out", tx.GetHash().ToString().substr(0,10).c_str());
+
+            // Tally transaction fees
+            int64_t nTxFee = nValueIn - tx.GetValueOut();
+            if (nTxFee < 0)
+                return error("AcceptableInputs() : %s nTxFee < 0", tx.GetHash().ToString().substr(0,10).c_str());
+
+            // enforce transaction fees for every block
+            if (nTxFee < tx.GetMinFee())
+                return error("AcceptableInputs() : %s not paying required fee=%s, paid=%s", tx.GetHash().ToString().substr(0,10).c_str(), FormatMoney(tx.GetMinFee()).c_str(), FormatMoney(nTxFee).c_str());
+
+            nFees += nTxFee;
+            if (!MoneyRange(nFees))
+                return error("AcceptableInputs() : nFees out of range");
+        }
+    }
     }
 
 
@@ -1146,6 +1213,7 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
 // miner's coin base reward
 int64_t GetProofOfWorkReward(int64_t nFees, int nHeight)
 {
+if(fTestNet) return 5000 * COIN;
 
 //anti-instamine
     int64_t nSubsidy = 0 * COIN;
@@ -2854,12 +2922,34 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
         block.nTime    = 1429352955;
-        block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 92070;
+        block.nBits    = (!fTestNet ? bnProofOfWorkLimit.GetCompact() : bnProofOfWorkLimitTestNet.GetCompact());
+        block.nNonce   = (!fTestNet ? 92070 : 92081);
 
+if (true && (block.GetHash() != (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet))) {
+	// This will figure out a valid hash and Nonce if you're
+	// creating a different genesis block:
+	    uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+	    while (block.GetHash() > hashTarget)
+	    {
+	        ++block.nNonce;
+	        if (block.nNonce == 0)
+		{
+		    printf("NONCE WRAPPED, incrementing time");
+		    ++block.nTime;
+		}
+	    }
+	}
+	//// debug print
+	block.print();
+	printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
+	printf("block.hashMerkleRoot == %s\n", block.hashMerkleRoot.ToString().c_str());
+	printf("block.nTime = %u \n", block.nTime);
+	printf("block.nNonce = %u \n", block.nNonce);
 
-        assert(block.hashMerkleRoot == uint256("0x80251aff18129581f06b3036bda4d571b909389699290deced973ebb580d11c5"));
-
+	if(!fTestNet)
+            assert(block.hashMerkleRoot == uint256("0x80251aff18129581f06b3036bda4d571b909389699290deced973ebb580d11c5"));
+	else
+	    assert(block.hashMerkleRoot == uint256("0x80251aff18129581f06b3036bda4d571b909389699290deced973ebb580d11c5"));
 
 	    block.print();
         assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
