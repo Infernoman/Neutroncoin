@@ -1241,9 +1241,9 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
-      {"neutron.seednode.info", "neutron.seednode.info" },
-    //{"45.56.116.84", "45.56.116.84"},
-    //{"maarx.Neutron.co", "seed2.Neutron.co"},
+      {"64.57.133.230", "64.57.133.230" },
+    {"192.52.167.140", "192.52.167.140"},
+    {"93.157.4.11", "93.157.4.11"},
     //{"archon.darkfox.id.au", "foxy.seeds.darkfox.id.au"},
 };
 
