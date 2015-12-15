@@ -1,11 +1,3 @@
-Today is a great day, we proudly  announce to you all the birth of neutron coin - a decentralized web infrastructure.
-neutron Foundation is made up of a group of crypto currency enthusiasts, techs and entrepreneurs.
-      ntrn is not the same promise-full cryptocoin, we bring many of the coolest features and functionalities, such as POW-POS phase and a web wallet.
-
- the neutron coin is just another example of the versatility of altcoins. 
-The future is here, and it’s now. Let’s work together to establish this coin’s path in the altcoin ecosystem and prepare for the future. We based our code on popular basecode so we can add features as they are requested and push this currency to new highs. The main goal of our coin, as for any other coins, is to de-centralize economy around the world and break the state's monopoly on currency.
-
-
 Ticker: NTRN
 	No Premine, No IPO/ICO.
 	Block time: 79 seconds
