@@ -40,14 +40,6 @@ static const int64_t DARKSEND_COLLATERAL = (25000*COIN);
 static const int64_t DARKSEND_FEE = (0.0025000*COIN);
 static const int64_t DARKSEND_POOL_MAX = (250000.99*COIN);
 
-/*
-    At 15 signatures, 1/2 of the masternode network can be owned by
-    one party without comprimising the security of InstantX
-    (1000/2150.0)**15 = 1.031e-05
-*/
-#define INSTANTX_SIGNATURES_REQUIRED           20
-#define INSTANTX_SIGNATURES_TOTAL              30
-
 #define MASTERNODE_NOT_PROCESSED               0 // initial state
 #define MASTERNODE_IS_CAPABLE                  1
 #define MASTERNODE_NOT_CAPABLE                 2
@@ -802,8 +794,6 @@ public:
     int GetBlocksToMaturity() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true);
     bool AcceptToMemoryPool();
-    int GetTransactionLockSignatures() const;
-    bool IsTransactionLockTimedOut() const;
 };
 
 

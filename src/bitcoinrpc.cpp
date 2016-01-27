@@ -307,7 +307,6 @@ static const CRPCCommand vRPCCommands[] =
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
 /* Dark features */
-    { "darksend",               &darksend,               false,      true },
     { "spork",                  &spork,                  false,      false },
     { "masternode",             &masternode,             false,      true },
 };

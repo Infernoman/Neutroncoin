@@ -9,7 +9,6 @@
 //#include "script/sign.h"
 #include "util.h"
 #include "masternode.h"
-#include "instantx.h"
 #include "ui_interface.h"
 //#include "random.h"
 
@@ -2161,7 +2160,6 @@ void ThreadCheckDarkSendPool(void* parg)
 	    }
 
             masternodePayments.CleanPaymentList();
-            CleanTransactionLocksList();
         }
 
         //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes

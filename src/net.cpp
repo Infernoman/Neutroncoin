@@ -1121,10 +1121,14 @@ void ThreadMapPort2(void* parg)
 #ifndef UPNPDISCOVER_SUCCESS
     /* miniupnpc 1.5 */
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0);
-#else
+#elif MINIUPNPC_API_VERSION < 14
     /* miniupnpc 1.6 */
     int error = 0;
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, &error);
+#else
+    /* miniupnpc 1.9.20150730 */
+    int error = 0;
+    devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, 2, &error);
 #endif
 
     struct UPNPUrls urls;
@@ -1241,9 +1245,7 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
-      {"64.57.133.230", "64.57.133.230" },
-    {"192.52.167.140", "192.52.167.140"},
-    {"93.157.4.11", "93.157.4.11"},
+    {"198.24.142.136", "198.24.142.136" },
     //{"archon.darkfox.id.au", "foxy.seeds.darkfox.id.au"},
 };
 
@@ -2068,22 +2070,6 @@ void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataSt
     }
 
     RelayInventory(inv);
-}
-
-void RelayTransactionLockReq(const CTransaction& tx, const uint256& hash, bool relayToAll)
-{
-    CInv inv(MSG_TXLOCK_REQUEST, tx.GetHash());
-
-    //broadcast the new lock
-    LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pnode, vNodes)
-    {
-        if(!relayToAll && !pnode->fRelayTxes)
-            continue;
-
-        pnode->PushMessage("txlreq", tx);
-    }
-
 }
 
 void RelayDarkSendFinalTransaction(const int sessionID, const CTransaction& txNew)

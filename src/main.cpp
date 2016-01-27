@@ -15,7 +15,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include "instantx.h"
 #include "darksend.h"
 #include "masternode.h"
 #include "spork.h"
@@ -784,17 +783,6 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
     if (fCheckInputs)
         if (txdb.ContainsTx(hash))
             return false;
-
-// ----------- instantX transaction scanning -----------
-
-    BOOST_FOREACH(const CTxIn& in, tx.vin){
-        if(mapLockedInputs.count(in.prevout)){
-            if(mapLockedInputs[in.prevout] != tx.GetHash()){
-                return tx.DoS(0,
-                     error("AcceptToMemoryPool : conflicts with existing transaction lock:\n"));
-            }
-        }
-    }
 
     // Check for conflicts with in-memory transactions
     CTransaction* ptxOld = NULL;
@@ -2358,25 +2346,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             return DoS(100, error("CheckBlock() : bad proof-of-stake block signature"));
     }
 
-// ----------- instantX transaction scanning -----------
-
-   
-        BOOST_FOREACH(const CTransaction& tx, vtx){
-            if (!tx.IsCoinBase()){
-                //only reject blocks when it's based on complete consensus
-                BOOST_FOREACH(const CTxIn& in, tx.vin){
-                    if(mapLockedInputs.count(in.prevout)){
-                        if(mapLockedInputs[in.prevout] != tx.GetHash()){
-                            if(fDebug) { printf("CheckBlock() : found conflicting transaction with transaction lock %s %s\n", mapLockedInputs[in.prevout].ToString().c_str(), tx.GetHash().ToString().c_str()); }
-                            return DoS(0, error("CheckBlock() : found conflicting transaction with transaction lock"));
-                        }
-                    }
-                }
-            }
-        }
-    
-
-
     // ----------- masternode payments -----------
 
     bool MasternodePayments = false;
@@ -3209,11 +3178,6 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
     case MSG_BLOCK:
         return mapBlockIndex.count(inv.hash) ||
                mapOrphanBlocks.count(inv.hash);
-    case MSG_TXLOCK_REQUEST:
-        return mapTxLockReq.count(inv.hash) ||
-               mapTxLockReqRejected.count(inv.hash);
-    case MSG_TXLOCK_VOTE:
-        return mapTxLockVote.count(inv.hash);
     case MSG_SPORK:
         return mapSporks.count(inv.hash);
     case MSG_MASTERNODE_WINNER:
@@ -3575,24 +3539,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                             pfrom->PushMessage("tx", ss);
                             pushed = true;
                         }
-                    }
-                }
-                if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
-                    if(mapTxLockVote.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapTxLockVote[inv.hash];
-                        pfrom->PushMessage("txlvote", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
-                    if(mapTxLockReq.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapTxLockReq[inv.hash];
-                        pfrom->PushMessage("txlreq", ss);
-                        pushed = true;
                     }
                 }
                 if (!pushed && inv.type == MSG_SPORK) {
@@ -3972,7 +3918,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         ProcessMessageDarksend(pfrom, strCommand, vRecv);
         ProcessMessageMasternode(pfrom, strCommand, vRecv);
-        ProcessMessageInstantX(pfrom, strCommand, vRecv);
         ProcessSpork(pfrom, strCommand, vRecv);
 
         // Ignore unknown commands for extensibility

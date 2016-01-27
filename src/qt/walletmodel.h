@@ -7,9 +7,6 @@
 
 #include "allocators.h" /* for SecureString */
 
-#include "instantx.h"
-#include "wallet.h"
-
 class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
@@ -31,8 +28,6 @@ public:
     QString address;
     QString label;
     qint64 amount;
-    AvailableCoinsType inputType;
-    bool useInstantX;
 };
 
 /** Interface to Bitcoin wallet from Qt view code. */
@@ -150,11 +145,8 @@ private:
     qint64 cachedStake;
     qint64 cachedUnconfirmedBalance;
     qint64 cachedImmatureBalance;
-    
-    qint64 cachedAnonymizedBalance;
+
     qint64 cachedNumTransactions;
-    int cachedTxLocks;
-    int cachedDarksendRounds;
     EncryptionStatus cachedEncryptionStatus;
     int cachedNumBlocks;
 
@@ -177,7 +169,7 @@ public slots:
 
 signals:
     // Signal that balance in wallet changed
-    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance, qint64 anonymizedBalance);
+    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
  
     // Number of transactions in wallet changed
     void numTransactionsChanged(int count);

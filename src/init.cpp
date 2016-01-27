@@ -331,10 +331,6 @@ strUsage += "\n" + _("Masternode options:") + "\n";
     strUsage += "  -anonymizeNeutronamount=<n> " + _("Keep N Neutron anonymized (default: 0)") + "\n";
     strUsage += "  -liquidityprovider=<n>       " + _("Provide liquidity to Darksend by infrequently mixing coins on a continual basis (0-100, default: 0, 1=very frequent, high fees, 100=very infrequent, low fees)") + "\n";
 
-    strUsage += "\n" + _("InstantX options:") + "\n";
-    strUsage += "  -enableinstantx=<n>    " + _("Enable instantx, show confirmations for locked transactions (bool, default: true)") + "\n";
-    strUsage += "  -instantxdepth=<n>     " + _("Show N confirmations for a successfully locked transaction (0-9999, default: 1)") + "\n";
-
     return strUsage;
 }
 
@@ -964,15 +960,6 @@ bool AppInit2()
     if(nAnonymizeNeutronAmount > 999999) nAnonymizeNeutronAmount = 999999;
     if(nAnonymizeNeutronAmount < 2) nAnonymizeNeutronAmount = 2;
 
-    bool fEnableInstantX = GetBoolArg("-enableinstantx", true);
-    if(fEnableInstantX){
-        nInstantXDepth = GetArg("-instantxdepth", 5);
-        if(nInstantXDepth > 60) nInstantXDepth = 60;
-        if(nInstantXDepth < 0) nAnonymizeNeutronAmount = 0;
-    } else {
-        nInstantXDepth = 0;
-    }
-
     //lite mode disables all Masternode and Darksend related functionality
     fLiteMode = GetBoolArg("-litemode", false);
     if(fMasterNode && fLiteMode){
@@ -980,7 +967,6 @@ bool AppInit2()
     }
 
     printf("fLiteMode %d\n", fLiteMode);
-    printf("nInstantXDepth %d\n", nInstantXDepth);
     printf("Darksend rounds %d\n", nDarksendRounds);
     printf("Anonymize Neutron Amount %d\n", nAnonymizeNeutronAmount);
 

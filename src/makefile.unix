@@ -145,7 +145,6 @@ OBJS= \
     obj/zerocoin/ZeroTest.o \
     obj/activemasternode.o \
     obj/darksend.o \
-    obj/instantx.o \
     obj/masternodeconfig.o \
     obj/masternode.o \
     obj/rpcdarksend.o \

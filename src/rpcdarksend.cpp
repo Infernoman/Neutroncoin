@@ -55,54 +55,6 @@ void SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew,
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
 }
 
-Value darksend(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() == 0)
-        throw runtime_error(
-            "darksend <slingaddress> <amount>\n"
-            "slingaddress, reset, or auto (AutoDenominate)"
-            "<amount> is a real and is rounded to the nearest 0.00000001"
-            + HelpRequiringPassphrase());
-
-    if (pwalletMain->IsLocked())
-        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
-
-    if(params[0].get_str() == "auto"){
-        if(fMasterNode)
-            return "DarkSend is not supported from masternodes";
-
-        darkSendPool.DoAutomaticDenominating();
-        return "DoAutomaticDenominating";
-    }
-
-    if(params[0].get_str() == "reset"){
-        darkSendPool.SetNull(true);
-        darkSendPool.UnlockCoins();
-        return "successfully reset darksend";
-    }
-
-    if (params.size() != 2)
-        throw runtime_error(
-            "darksend <slingaddress> <amount>\n"
-            "slingaddress, denominate, or auto (AutoDenominate)"
-            "<amount> is a real and is rounded to the nearest 0.00000001"
-            + HelpRequiringPassphrase());
-
-    CBitcoinAddress address(params[0].get_str());
-    if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sling address");
-
-    // Amount
-    int64_t nAmount = AmountFromValue(params[1]);
-
-    // Wallet comments
-    CWalletTx wtx;
-    SendMoney(address.Get(), nAmount, wtx, ONLY_DENOMINATED);
-   
-    return wtx.GetHash().GetHex();
-}
-
-
 Value getpoolinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
