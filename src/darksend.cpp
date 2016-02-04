@@ -767,9 +767,9 @@ void CDarkSendPool::ChargeRandomFees(){
 
                 Being that DarkSend has "no fees" we need to have some kind of cost associated
                 with using it to stop abuse. Otherwise it could serve as an attack vector and
-                allow endless transaction that would bloat Sling and make it unusable. To
+                allow endless transaction that would bloat NTRN and make it unusable. To
                 stop these kinds of attacks 1 in 50 successful transactions are charged. This
-                adds up to a cost of 0.002SLING per transaction on average.
+                adds up to a cost of 0.002 NTRN per transaction on average.
             */
             if(r <= 20)
             {
@@ -1461,8 +1461,8 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
         //randomize the amounts we mix
         if(sessionTotalValue > nBalanceNeedsAnonymized) sessionTotalValue = nBalanceNeedsAnonymized;
 
-        double fSlingSubmitted = (sessionTotalValue / CENT);
-        printf("Submitting Darksend for %f SLING CENT - sessionTotalValue %d\n", fSlingSubmitted, sessionTotalValue);
+        double fNtrnSubmitted = (sessionTotalValue / CENT);
+        printf("Submitting Darksend for %f NTRN CENT - sessionTotalValue %d\n", fNtrnSubmitted, sessionTotalValue);
 
         if(pwalletMain->GetDenominatedBalance(true, true) > 0){ //get denominated unconfirmed inputs
             printf("DoAutomaticDenominating -- Found unconfirmed denominated outputs, will wait till they confirm to continue.\n");
@@ -1848,10 +1848,10 @@ bool CDarkSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
 void CDarkSendPool::GetDenominationsToString(int nDenom, std::string& strDenom){
     // Function returns as follows:
     //
-    // bit 0 - 100SLING+1 ( bit on if present )
-    // bit 1 - 10SLING+1
-    // bit 2 - 1SLING+1
-    // bit 3 - .1SLING+1
+    // bit 0 - 100 NTRN+1 ( bit on if present )
+    // bit 1 - 10 NTRN+1
+    // bit 2 - 1 NTRN+1
+    // bit 3 - .1 NTRN+1
     // bit 3 - non-denom
 
 
@@ -1907,10 +1907,10 @@ int CDarkSendPool::GetDenominations(const std::vector<CTxOut>& vout){
 
     // Function returns as follows:
     //
-    // bit 0 - 100SLING+1 ( bit on if present )
-    // bit 1 - 10SLING+1
-    // bit 2 - 1SLING+1
-    // bit 3 - .1SLING+1
+    // bit 0 - 100 NTRN+1 ( bit on if present )
+    // bit 1 - 10 NTRN+1
+    // bit 2 - 1 NTRN+1
+    // bit 3 - .1 NTRN+1
 
     return denom;
 }

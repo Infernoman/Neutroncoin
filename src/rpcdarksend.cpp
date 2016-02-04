@@ -37,7 +37,7 @@ void SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew,
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
 
-    // Parse sling address
+    // Parse NTRN address
     CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
