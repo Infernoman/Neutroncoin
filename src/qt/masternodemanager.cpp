@@ -269,7 +269,7 @@ void MasternodeManager::on_removeButton_clicked()
         return;
 
     QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(this, "Delete Adrenaline Node?", "Are you sure you want to delete this adrenaline node configuration?", QMessageBox::Yes|QMessageBox::No);
+    confirm = QMessageBox::question(this, "Delete Nucleus Node?", "Are you sure you want to delete this nucleus node configuration?", QMessageBox::Yes|QMessageBox::No);
 
     if(confirm == QMessageBox::Yes)
     {
